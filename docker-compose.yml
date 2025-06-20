@@ -1,0 +1,20 @@
+# docker-compose.yml file
+version: '3.8' # compose file format version එක
+
+services:
+  # පළවෙනි service එක: අපේ Node.js app එක
+  node-app:
+    build: . # Dockerfile එක තියෙන්නේ මේ directory එකේමයි කියලා කියනවා
+    ports:
+      - "4000:3000" # Host:Container port mapping
+    environment:
+      - NODE_ENV=development
+    # මේ service එක පටන් ගන්න කලින්, 'redis-server' service එක පටන් අරන් ඉන්න ඕන
+    depends_on:
+      - redis-server
+
+  # දෙවෙනි service එක: Redis database එක
+  redis-server:
+    image: "redis:alpine" # Docker Hub එකෙන් official redis image එක ගන්නවා
+    ports:
+      - "6379:6379"
