@@ -24,7 +24,7 @@ pipeline {
                 checkout scm
                 // Project sub-directory එකට මාරු වෙනවා
                 dir('node-ci-github-actions') {
-                    echo "Code checked out. Now in directory $(pwd)"
+                    echo 'Code checked out. Now in directory $(pwd)'
                 }
             }
         }
