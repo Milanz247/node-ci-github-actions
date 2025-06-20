@@ -6,8 +6,6 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
-                    // Project එක තියෙන sub-directory එක define කරනවා
-                    // ඔබේ repo structure එක අනුව මේක වෙනස් කරන්න
                     env.PROJECT_DIR = "node-ci-github-actions"
                 }
                 echo "Project directory set to: ${env.PROJECT_DIR}"
@@ -15,40 +13,35 @@ pipeline {
             }
         }
 
+        // ==========================================================
+        // මෙන්න නිවැරදි කරන ලද, එකම එක 'Build Docker Image' stage එක
+        // ==========================================================
         stage('Build Docker Image') {
             steps {
-                // අපි කලින් Freestyle job එකේ කරපු දේමයි
                 dir(env.PROJECT_DIR) {
-                    echo "Entered directory: $(pwd)"
-                    echo "Building Docker image..."
-                    // ඔබේ Docker Hub username එක මෙතනට දාන්න
-                    sh 'docker build -t miilanz247/node-app-jenkins:${BUILD_NUMBER} .'
+                    // shell command එක 'sh' step එකකින් run කරනවා
+                    sh 'echo "===> Entered directory: $(pwd)"'
+                    
+                    // Groovy variable එකක් පාවිච්චි කරන නිසා double quotes
+                    echo "Building Docker image for tag: ${env.BUILD_NUMBER}"
+                    
+                    // Groovy variable එකක් command එකට interpolate කරන නිසා double quotes
+                    sh "docker build -t miilanz247/node-app-jenkins:${env.BUILD_NUMBER} ."
                 }
             }
         }
 
-       stage('Build Docker Image') {
-                steps {
-                    dir(env.PROJECT_DIR) {
-                        // අපි සම්පූර්ණ shell command එකම `sh` step එකට දෙනවා.
-                        // string interpolation වලට single quotes පාවිච්චි කරනවා.
-                        sh 'echo "===> Entered directory: $(pwd)"'
-                        
-                        echo "Building Docker image for tag: ${env.BUILD_NUMBER}"
-                        
-                        // Docker build command එක.
-                        // මෙතන ${env.BUILD_NUMBER} කියන Groovy variable එක interpolate වෙන්න ඕන නිසා,
-                        // අපි double quotes පාවිච්චි කරනවා.
-                        sh "docker build -t miilanz247/node-app-jenkins:${env.BUILD_NUMBER} ."
-                    }
-                }
+        stage('List Docker Images') {
+            steps {
+                echo "Listing available Docker images..."
+                sh 'docker images'
             }
+        }
     }
 
     post {
         always {
-            echo 'Pipeline finished. Cleaning up...'
-            // මෙතන workspace cleanup වගේ දේවල් දාන්න පුළුවන්
+            echo 'Pipeline finished.'
         }
         success {
             echo 'Pipeline was successful! Hooray!'
