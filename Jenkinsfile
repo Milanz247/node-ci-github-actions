@@ -1,52 +1,51 @@
-// Jenkinsfile.scripted
+// Jenkinsfile
 
+pipeline {
+    agent any 
 
-node {
-    // Variable definitions
-    def dockerImageName = "miilanz247/node-app-scripted" 
-    def projectDir      = "node-ci-github-actions"
-    def dockerImageTag
+    environment {
+                
+      //  DOCKERHUB_CREDENTIALS_ID = 'your-dockerhub-credentials-id'
+        DOCKER_IMAGE_NAME = "milanz247/node-app-jenkins"
+    }
 
-    try {
-        stage('Preparation') {
-            echo "--> Preparing the build environment..."
-
-            // Checkout the source code from the configured SCM
-            checkout scm
-            
-            // Set the image tag using the build number
-            dockerImageTag = "${env.BUILD_NUMBER}"
-            echo "Pipeline started for build number: ${dockerImageTag}"
-            echo "Image will be named: ${dockerImageName}:${dockerImageTag}"
+    stages {
+        stage('Initialize') {
+            steps {
+                script {                    
+                    def shortCommit = env.GIT_COMMIT.take(7)
+                    env.IMAGE_TAG = shortCommit
+                    echo "Image tag will be: ${env.IMAGE_TAG}"
+                }
+            }
         }
 
         stage('Build Docker Image') {
-            echo "--> Building the Docker image..."
-            
-            sh '''
-                cd ${projectDir}
-                docker build -t ${dockerImageName}:${dockerImageTag} .
-            '''
+            steps {
+                echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}"
+                sh "docker build -t ${env.DOCKER_IMAGE_NAME}:${env.IMAGE_TAG} ."
+            }
         }
 
         stage('List Docker Images') {
-            echo "--> Listing Docker images to verify the build..."
-            sh "docker images | grep '${dockerImageName}'"
+            steps {
+                echo "Listing local Docker images..."
+                sh 'docker images'
+            }
         }
 
-        // Set the build result to SUCCESS explicitly
-        currentBuild.result = 'SUCCESS'
-        echo "Hooray! The pipeline was successful."
+        
+        // stage('Push Docker Image') {
+        //     steps {
+        //         echo "Pushing image to Docker Hub..."
+        //         // Docker Hub login සහ push commands මෙතනට එනවා
+        //     }
+        // }
+    }
 
-    } catch (err) {
-        // If any stage fails, this block will run
-        echo "Oops! An error occurred: ${err.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        // Re-throw the error to make sure the pipeline is marked as failed
-        throw err
-    } finally {
-        // This block runs whether the pipeline succeeds or fails
-        echo "--> Pipeline finished. Cleaning up workspace..."
-        cleanWs()
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
     }
 }
