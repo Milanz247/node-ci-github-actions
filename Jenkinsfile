@@ -6,33 +6,24 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
-                    // අපි මේ variable එක තවදුරටත් define කරන්නේ නෑ, 
-                    // මොකද අපි workspace එකේ structure එක දන්නේ නෑ.
-                    // env.PROJECT_DIR = "node-ci-github-actions"
+                    // Project එක තියෙන sub-directory එක define කරනවා
+                    // ඔබේ repo structure එක අනුව මේක වෙනස් කරන්න
+                    env.PROJECT_DIR = "node-ci-github-actions"
                 }
-                echo "Pipeline started for build number: ${env.BUILD_NUMBER}"
-            }
-        }
-
-        // ==========================================================
-        // අලුතෙන් එකතු කළ DEBUG STAGE එක
-        // ==========================================================
-        stage('Debug Workspace') {
-            steps {
-                echo "--- DEBUGGING WORKSPACE ---"
-                sh 'echo "Current directory is: $(pwd)"'
-                sh 'echo "Listing files and directories:"'
-                sh 'ls -la'
-                echo "--- END OF DEBUGGING ---"
+                echo "Project directory set to: ${env.PROJECT_DIR}"
+                echo "Build number is: ${env.BUILD_NUMBER}"
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                // අපි dir() step එක අයින් කරලා, කෙලින්ම build කරනවා.
-                // මොකද අපේ උපකල්පනය Dockerfile එක root එකේම තියෙනවා කියන එක.
-                echo "Building Docker image..."
-                sh "docker build -t miilanz247/node-app-jenkins:${env.BUILD_NUMBER} ."
+                // අපි කලින් Freestyle job එකේ කරපු දේමයි
+                dir(env.PROJECT_DIR) {
+                    echo "Entered directory: $(pwd)"
+                    echo "Building Docker image..."
+                    // ඔබේ Docker Hub username එක මෙතනට දාන්න
+                    sh 'docker build -t miilanz247/node-app-jenkins:${BUILD_NUMBER} .'
+                }
             }
         }
 
@@ -45,9 +36,9 @@ pipeline {
     }
 
     post {
-        // post block එක නොවෙනස්ව තබන්න
         always {
-            echo 'Pipeline finished.'
+            echo 'Pipeline finished. Cleaning up...'
+            // මෙතන workspace cleanup වගේ දේවල් දාන්න පුළුවන්
         }
         success {
             echo 'Pipeline was successful! Hooray!'
