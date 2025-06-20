@@ -29,16 +29,13 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                // Project sub-directory එක ඇතුලේ commands run කරනවා
-                dir('node-ci-github-actions') {
-                    echo "Building Docker image..."
-                    // Docker build command එක
-                    sh "docker build -t ${env.DOCKER_IMAGE_NAME} ."
+       stage('Build Docker Image') {
+                steps {
+                    echo "Building Docker image from root using subdirectory as context..."
+                    sh "docker build -t ${env.DOCKER_IMAGE_NAME} node-ci-github-actions"
                 }
             }
-        }
+
 
         stage('Show Images') {
             steps {
