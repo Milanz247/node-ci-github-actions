@@ -11,7 +11,7 @@ describe('GET /', function() {
       .end(function(err, res) {
         if (err) return done(err);
         // response body එකේ text එක හරියටම තියෙනවද කියලා බලනවා
-        assert.strictEqual(res.text, 'Hello, DevOps Professor! This is my first CI-powered Node.js App!');
+        assert.strictEqual(res.text, 'Hello, DevOps Professor! This is my first CI-powered Node.js App! By Milan Madusanka>');
         done();
       });
   });
