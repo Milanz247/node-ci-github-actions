@@ -3,7 +3,6 @@ pipeline {
     agent any
 
     environment {
-        
         DOCKER_USERNAME = 'miilanz247' 
     }
 
@@ -11,7 +10,7 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
-                    // Global variable එකක් හදනවා image name එකට
+                    // Create Docker image name with tag based on build number
                     env.DOCKER_IMAGE_NAME = "${DOCKER_USERNAME}/node-app-pipeline:${env.BUILD_NUMBER}"
                 }
                 echo "Pipeline started for image: ${env.DOCKER_IMAGE_NAME}"
@@ -20,41 +19,37 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                // Git repo එක checkout කරනවා
+                echo 'Checking out source code...'
                 checkout scm
-                // Project sub-directory එකට මාරු වෙනවා
-                dir('node-ci-github-actions') {
-                    echo 'Code checked out. Now in directory $(pwd)'
-                }
+                sh 'ls -la' // Just to confirm structure
             }
         }
 
-       stage('Build Docker Image') {
-                steps {
-                    echo "Building Docker image from root using subdirectory as context..."
-                    sh "docker build -t ${env.DOCKER_IMAGE_NAME} node-ci-github-actions"
-                }
-            }
-
-
-        stage('Show Images') {
+        stage('Build Docker Image') {
             steps {
-                echo "Listing Docker images to confirm..."
-                sh "docker images"
+                echo "Building Docker image..."
+                // Build from root, sending the node-ci-github-actions folder as context
+                sh "docker build -t ${env.DOCKER_IMAGE_NAME} -f Dockerfile node-ci-github-actions"
+            }
+        }
+
+        stage('Show Docker Images') {
+            steps {
+                echo "Listing Docker images..."
+                sh "docker images | grep ${DOCKER_USERNAME}"
             }
         }
     }
-    
+
     post {
-        // Pipeline එක ඉවර වුණාම මොකද වෙන්න ඕන
         always {
             echo "Pipeline finished."
         }
         success {
-            echo "Pipeline was successful! Ready for the next step."
+            echo "✅ Pipeline was successful! Docker image: ${env.DOCKER_IMAGE_NAME}"
         }
         failure {
-            echo "Pipeline failed. Please check the logs."
+            echo "❌ Pipeline failed. Please check the logs above."
         }
     }
 }
