@@ -6,28 +6,33 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
-                    env.PROJECT_DIR = "node-ci-github-actions"
+                    // අපි මේ variable එක තවදුරටත් define කරන්නේ නෑ, 
+                    // මොකද අපි workspace එකේ structure එක දන්නේ නෑ.
+                    // env.PROJECT_DIR = "node-ci-github-actions"
                 }
-                echo "Project directory set to: ${env.PROJECT_DIR}"
-                echo "Build number is: ${env.BUILD_NUMBER}"
+                echo "Pipeline started for build number: ${env.BUILD_NUMBER}"
             }
         }
 
         // ==========================================================
-        // මෙන්න නිවැරදි කරන ලද, එකම එක 'Build Docker Image' stage එක
+        // අලුතෙන් එකතු කළ DEBUG STAGE එක
         // ==========================================================
+        stage('Debug Workspace') {
+            steps {
+                echo "--- DEBUGGING WORKSPACE ---"
+                sh 'echo "Current directory is: $(pwd)"'
+                sh 'echo "Listing files and directories:"'
+                sh 'ls -la'
+                echo "--- END OF DEBUGGING ---"
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                dir(env.PROJECT_DIR) {
-                    // shell command එක 'sh' step එකකින් run කරනවා
-                    sh 'echo "===> Entered directory: $(pwd)"'
-                    
-                    // Groovy variable එකක් පාවිච්චි කරන නිසා double quotes
-                    echo "Building Docker image for tag: ${env.BUILD_NUMBER}"
-                    
-                    // Groovy variable එකක් command එකට interpolate කරන නිසා double quotes
-                    sh "docker build -t miilanz247/node-app-jenkins:${env.BUILD_NUMBER} ."
-                }
+                // අපි dir() step එක අයින් කරලා, කෙලින්ම build කරනවා.
+                // මොකද අපේ උපකල්පනය Dockerfile එක root එකේම තියෙනවා කියන එක.
+                echo "Building Docker image..."
+                sh "docker build -t miilanz247/node-app-jenkins:${env.BUILD_NUMBER} ."
             }
         }
 
@@ -40,6 +45,7 @@ pipeline {
     }
 
     post {
+        // post block එක නොවෙනස්ව තබන්න
         always {
             echo 'Pipeline finished.'
         }
