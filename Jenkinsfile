@@ -1,10 +1,11 @@
-// Jenkinsfile 
+// Jenkinsfile (Updated for pushing to Docker Hub)
 
 pipeline {
     agent any
 
     environment {
-//        DOCKERHUB_CREDENTIALS_ID = 'dockerhub-credentials' 
+        
+        DOCKERHUB_CREDENTIALS_ID = 'dockerhub-credentials' 
         DOCKER_IMAGE_NAME = "your-dockerhub-username/node-app-jenkins"
     }
 
@@ -29,20 +30,17 @@ pipeline {
             }
         }
 
-       
+        
         stage('Push Docker Image') {
             steps {
                 echo "Pushing image to Docker Hub..."
-                
-                withCredentials([usernamePassword(credentialsId: env.dockerhub-credentials, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                  
-                    // Docker Hub එකට login වෙනවා
+               
+                withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    
                     sh "echo ${env.DOCKER_PASSWORD} | docker login -u ${env.DOCKER_USERNAME} --password-stdin"
                     
-                    // commit hash tag එකෙන් image එක push කරනවා
                     sh "docker push ${env.DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}"
 
-                    // 'latest' tag එකෙනුත් image එක push කරනවා
                     sh "docker push ${env.DOCKER_IMAGE_NAME}:${env.LATEST_TAG}"
                 }
             }
@@ -51,7 +49,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished. Logging out from Docker Hub.'
+            echo 'Pipeline finished. Logging out from Docker Hub.'           
             sh 'docker logout'
             cleanWs()
         }
